@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Git Workflow - Схема работы команд</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #e4e4e4;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      background: linear-gradient(90deg, #f97316, #ef4444);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      text-align: center;
+      color: #888;
+      margin-bottom: 40px;
+    }
+
+    /* Workflow Diagram */
+    .workflow {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 50px;
+      flex-wrap: wrap;
+    }
+    .zone {
+      flex: 1;
+      min-width: 150px;
+      background: #252540;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      border: 2px solid #333;
+    }
+    .zone.working { border-color: #f97316; }
+    .zone.staging { border-color: #eab308; }
+    .zone.local { border-color: #22c55e; }
+    .zone.remote { border-color: #3b82f6; }
+
+    .zone-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .zone.working .zone-title { color: #f97316; }
+    .zone.staging .zone-title { color: #eab308; }
+    .zone.local .zone-title { color: #22c55e; }
+    .zone.remote .zone-title { color: #3b82f6; }
+
+    .zone-desc {
+      font-size: 0.8rem;
+      color: #888;
+    }
+
+    .arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #666;
+      min-width: 80px;
+    }
+    .arrow-line {
+      font-size: 1.5rem;
+    }
+    .arrow-cmd {
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      background: #333;
+      padding: 4px 8px;
+      border-radius: 4px;
+      color: #4ade80;
+      white-space: nowrap;
+    }
+
+    /* Commands Table */
+    .section-title {
+      font-size: 1.5rem;
+      margin: 40px 0 20px;
+      color: #fff;
+      border-left: 4px solid #f97316;
+      padding-left: 15px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+      background: #252540;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    th {
+      background: #1e1e35;
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+      color: #f97316;
+      border-bottom: 2px solid #333;
+    }
+    td {
+      padding: 15px;
+      border-bottom: 1px solid #333;
+      vertical-align: top;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:hover {
+      background: #2a2a4a;
+    }
+    .cmd {
+      font-family: 'Courier New', monospace;
+      background: #1a1a2e;
+      padding: 4px 10px;
+      border-radius: 4px;
+      color: #4ade80;
+      display: inline-block;
+      font-size: 0.9rem;
+    }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      margin-right: 5px;
+    }
+    .tag.local { background: #22c55e20; color: #22c55e; }
+    .tag.remote { background: #3b82f620; color: #3b82f6; }
+    .tag.both { background: #a855f720; color: #a855f7; }
+
+    /* Comparison Table */
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    @media (max-width: 768px) {
+      .comparison { grid-template-columns: 1fr; }
+      .workflow { flex-direction: column; }
+      .arrow { transform: rotate(90deg); margin: 10px 0; }
+    }
+    .compare-card {
+      background: #252540;
+      border-radius: 12px;
+      padding: 25px;
+      border: 2px solid #333;
+    }
+    .compare-card h3 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .compare-card h3 .cmd {
+      font-size: 1.1rem;
+    }
+    .compare-list {
+      list-style: none;
+    }
+    .compare-list li {
+      padding: 10px 0;
+      border-bottom: 1px solid #333;
+      display: flex;
+      gap: 10px;
+    }
+    .compare-list li:last-child {
+      border-bottom: none;
+    }
+    .compare-list .label {
+      color: #888;
+      min-width: 100px;
+    }
+    .compare-list .value {
+      color: #fff;
+    }
+
+    /* Common Workflows */
+    .workflow-example {
+      background: #252540;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 20px;
+    }
+    .workflow-example h4 {
+      color: #f97316;
+      margin-bottom: 15px;
+    }
+    .workflow-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .step-num {
+      width: 30px;
+      height: 30px;
+      background: #f97316;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .step-content {
+      flex: 1;
+    }
+    .step-cmd {
+      font-family: 'Courier New', monospace;
+      background: #1a1a2e;
+      padding: 8px 15px;
+      border-radius: 6px;
+      color: #4ade80;
+      display: block;
+      margin-top: 5px;
+    }
+    .step-desc {
+      color: #888;
+      font-size: 0.9rem;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      margin-top: 50px;
+      color: #666;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Git Workflow</h1>
+    <p class="subtitle">Схема работы основных команд Git</p>
+
+    <!-- Visual Workflow -->
+    <div class="workflow">
+      <div class="zone working">
+        <div class="zone-title">Working Directory</div>
+        <div class="zone-desc">Рабочая директория<br>Ваши файлы</div>
+      </div>
+
+      <div class="arrow">
+        <span class="arrow-cmd">git add</span>
+        <span class="arrow-line">→</span>
+      </div>
+
+      <div class="zone staging">
+        <div class="zone-title">Staging Area</div>
+        <div class="zone-desc">Индекс<br>Подготовка к коммиту</div>
+      </div>
+
+      <div class="arrow">
+        <span class="arrow-cmd">git commit</span>
+        <span class="arrow-line">→</span>
+      </div>
+
+      <div class="zone local">
+        <div class="zone-title">Local Repository</div>
+        <div class="zone-desc">Локальный репозиторий<br>История коммитов</div>
+      </div>
+
+      <div class="arrow">
+        <span class="arrow-cmd">git push</span>
+        <span class="arrow-line">→</span>
+      </div>
+
+      <div class="zone remote">
+        <div class="zone-title">Remote Repository</div>
+        <div class="zone-desc">GitHub/GitLab<br>Общий сервер</div>
+      </div>
+    </div>
+
+    <!-- Comparison: commit vs push -->
+    <h2 class="section-title">git commit vs git push</h2>
+    <div class="comparison">
+      <div class="compare-card">
+        <h3><span class="cmd">git commit</span></h3>
+        <ul class="compare-list">
+          <li>
+            <span class="label">Назначение</span>
+            <span class="value">Сохраняет снимок изменений в локальную историю Git</span>
+          </li>
+          <li>
+            <span class="label">Область</span>
+            <span class="value"><span class="tag local">Local</span> Изменения остаются только на вашей машине</span>
+          </li>
+          <li>
+            <span class="label">Требует</span>
+            <span class="value">Выполнения git add (индексация изменений)</span>
+          </li>
+          <li>
+            <span class="label">Совместная работа</span>
+            <span class="value">Другие разработчики не видят ваших коммитов</span>
+          </li>
+          <li>
+            <span class="label">Аналогия</span>
+            <span class="value">Как сохранение файла (Ctrl+S)</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="compare-card">
+        <h3><span class="cmd">git push</span></h3>
+        <ul class="compare-list">
+          <li>
+            <span class="label">Назначение</span>
+            <span class="value">Передает локальные коммиты на удаленный сервер</span>
+          </li>
+          <li>
+            <span class="label">Область</span>
+            <span class="value"><span class="tag remote">Remote</span> Обновляет репозиторий на сервере</span>
+          </li>
+          <li>
+            <span class="label">Требует</span>
+            <span class="value">Хотя бы один локальный коммит для передачи</span>
+          </li>
+          <li>
+            <span class="label">Совместная работа</span>
+            <span class="value">Делает работу доступной для команды</span>
+          </li>
+          <li>
+            <span class="label">Аналогия</span>
+            <span class="value">Как загрузка файла в облако</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- All Commands Table -->
+    <h2 class="section-title">Основные команды Git</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 180px;">Команда</th>
+          <th>Описание</th>
+          <th style="width: 100px;">Область</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="cmd">git init</span></td>
+          <td>Инициализирует новый Git репозиторий в текущей директории</td>
+          <td><span class="tag local">Local</span></td>
+        </tr>
+        <tr>
+          <td><span class="cmd">git clone</span></td>
+          <td>Клонирует удаленный репозиторий на локальную машину</td>
+          <td><span class="tag both">Both</span></td>
+        </tr>
+        <tr>
+          <td><span class="cmd">git status</span></td>
+          <td>Показывает состояние рабочей директории и индекса</td>
+          <td><span class="tag local">Local</span></td>
+        </tr>
+        <tr>
+          <td><span class="cmd">git add</span></td>
+          <td>Добавляет изменения в индекс (staging area) для следующего коммита</td>
+          <td><span class="tag local">Local</span></td>
+        </tr>
+        <tr>
+          <td><span class="cmd">git commit</span></td>
+          <td>Записывает индексированные изменения в локальную историю</td>
+          <td><span class="tag local">Local</span></td>
+        </tr>
+        <tr>
+          <td><span class="cmd">git push</span></td>
+          <td>Отправляет локальные коммиты на удаленный сервер</td>
+          <td><span class="tag remote">Remote</span></td>
+        </tr>
+        <tr>
+          <td><span class="cmd">git pull</span></td>
+          <td>Получает изменения с удаленного сервера и сливает с локальной веткой</td>
+          <td><span class="tag both">Both</span></td>
+        </tr>
+        <tr>
+          <td><span class="cmd">git fetch</span></td>
+          <td>Получает изменения с удаленного сервера без слияния</td>
+          <td><span class="tag both">Both</span></td>
+        </tr>
+        <tr>
+          <td><span class="cmd">git branch</span></td>
+          <td>Управление ветками: создание, просмотр, удаление</td>
+          <td><span class="tag local">Local</span></td>
+        </tr>
+        <tr>
+          <td><span class="cmd">git checkout</span></td>
+          <td>Переключение между ветками или восстановление файлов</td>
+          <td><span class="tag local">Local</span></td>
+        </tr>
+        <tr>
+          <td><span class="cmd">git merge</span></td>
+          <td>Сливает указанную ветку в текущую</td>
+          <td><span class="tag local">Local</span></td>
+        </tr>
+        <tr>
+          <td><span class="cmd">git rebase</span></td>
+          <td>Перемещает коммиты на новую базу (перезаписывает историю)</td>
+          <td><span class="tag local">Local</span></td>
+        </tr>
+        <tr>
+          <td><span class="cmd">git log</span></td>
+          <td>Показывает историю коммитов</td>
+          <td><span class="tag local">Local</span></td>
+        </tr>
+        <tr>
+          <td><span class="cmd">git diff</span></td>
+          <td>Показывает различия между коммитами, ветками или файлами</td>
+          <td><span class="tag local">Local</span></td>
+        </tr>
+        <tr>
+          <td><span class="cmd">git stash</span></td>
+          <td>Временно сохраняет незакоммиченные изменения</td>
+          <td><span class="tag local">Local</span></td>
+        </tr>
+        <tr>
+          <td><span class="cmd">git reset</span></td>
+          <td>Сбрасывает текущий HEAD к указанному состоянию</td>
+          <td><span class="tag local">Local</span></td>
+        </tr>
+        <tr>
+          <td><span class="cmd">git revert</span></td>
+          <td>Создает новый коммит, отменяющий изменения указанного коммита</td>
+          <td><span class="tag local">Local</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pull Request Section -->
+    <h2 class="section-title">Pull Request (PR)</h2>
+
+    <div class="compare-card" style="margin-bottom: 30px;">
+      <h3 style="color: #a855f7;">Что такое Pull Request?</h3>
+      <p style="color: #ccc; margin-bottom: 20px; line-height: 1.6;">
+        Pull Request — это запрос на слияние изменений из одной ветки в другую.
+        Это основной механизм code review в командной разработке. PR позволяет обсудить изменения,
+        оставить комментарии и убедиться в качестве кода перед слиянием.
+      </p>
+
+      <!-- PR Workflow Diagram -->
+      <div class="workflow" style="margin: 30px 0; background: #1a1a2e; padding: 20px; border-radius: 10px;">
+        <div class="zone" style="border-color: #22c55e; flex: 0 0 auto; min-width: 120px;">
+          <div class="zone-title" style="color: #22c55e;">Feature Branch</div>
+          <div class="zone-desc">Ваша ветка<br>с изменениями</div>
+        </div>
+
+        <div class="arrow">
+          <span class="arrow-cmd">git push</span>
+          <span class="arrow-line">→</span>
+        </div>
+
+        <div class="zone" style="border-color: #a855f7; flex: 0 0 auto; min-width: 120px;">
+          <div class="zone-title" style="color: #a855f7;">Pull Request</div>
+          <div class="zone-desc">Code Review<br>Обсуждение</div>
+        </div>
+
+        <div class="arrow">
+          <span class="arrow-cmd">merge</span>
+          <span class="arrow-line">→</span>
+        </div>
+
+        <div class="zone" style="border-color: #3b82f6; flex: 0 0 auto; min-width: 120px;">
+          <div class="zone-title" style="color: #3b82f6;">Main Branch</div>
+          <div class="zone-desc">Основная ветка<br>Продакшен</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PR Lifecycle -->
+    <div class="comparison" style="margin-bottom: 30px;">
+      <div class="compare-card">
+        <h3><span style="color: #a855f7;">Жизненный цикл PR</span></h3>
+        <ul class="compare-list">
+          <li>
+            <span class="label" style="color: #eab308;">1. Open</span>
+            <span class="value">PR создан, ожидает review</span>
+          </li>
+          <li>
+            <span class="label" style="color: #3b82f6;">2. Review</span>
+            <span class="value">Команда проверяет код, оставляет комментарии</span>
+          </li>
+          <li>
+            <span class="label" style="color: #f97316;">3. Changes</span>
+            <span class="value">Автор вносит правки по комментариям</span>
+          </li>
+          <li>
+            <span class="label" style="color: #22c55e;">4. Approved</span>
+            <span class="value">Reviewer одобрил изменения</span>
+          </li>
+          <li>
+            <span class="label" style="color: #a855f7;">5. Merged</span>
+            <span class="value">PR слит в основную ветку</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="compare-card">
+        <h3><span style="color: #a855f7;">Команды GitHub CLI (gh)</span></h3>
+        <ul class="compare-list">
+          <li>
+            <span class="value"><span class="cmd">gh pr create</span> — создать PR</span>
+          </li>
+          <li>
+            <span class="value"><span class="cmd">gh pr list</span> — список открытых PR</span>
+          </li>
+          <li>
+            <span class="value"><span class="cmd">gh pr view</span> — просмотр PR</span>
+          </li>
+          <li>
+            <span class="value"><span class="cmd">gh pr checkout 123</span> — переключиться на PR</span>
+          </li>
+          <li>
+            <span class="value"><span class="cmd">gh pr merge</span> — слить PR</span>
+          </li>
+          <li>
+            <span class="value"><span class="cmd">gh pr review --approve</span> — одобрить PR</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- PR Best Practices -->
+    <div class="workflow-example" style="margin-bottom: 30px;">
+      <h4 style="color: #a855f7;">Лучшие практики для Pull Request</h4>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;">
+        <div style="background: #1a1a2e; padding: 15px; border-radius: 8px; border-left: 3px solid #22c55e;">
+          <strong style="color: #22c55e;">✓ Маленькие PR</strong>
+          <p style="color: #888; font-size: 0.85rem; margin-top: 5px;">200-400 строк кода. Легче ревьюить и меньше конфликтов.</p>
+        </div>
+        <div style="background: #1a1a2e; padding: 15px; border-radius: 8px; border-left: 3px solid #22c55e;">
+          <strong style="color: #22c55e;">✓ Понятное описание</strong>
+          <p style="color: #888; font-size: 0.85rem; margin-top: 5px;">Что изменено, зачем, как тестировать.</p>
+        </div>
+        <div style="background: #1a1a2e; padding: 15px; border-radius: 8px; border-left: 3px solid #22c55e;">
+          <strong style="color: #22c55e;">✓ Одна задача = один PR</strong>
+          <p style="color: #888; font-size: 0.85rem; margin-top: 5px;">Не смешивайте фичи и рефакторинг.</p>
+        </div>
+        <div style="background: #1a1a2e; padding: 15px; border-radius: 8px; border-left: 3px solid #22c55e;">
+          <strong style="color: #22c55e;">✓ Тесты проходят</strong>
+          <p style="color: #888; font-size: 0.85rem; margin-top: 5px;">CI должен быть зеленым перед merge.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Common Workflows -->
+    <h2 class="section-title">Типичные сценарии работы</h2>
+
+    <div class="workflow-example">
+      <h4>1. Сохранение изменений (базовый workflow)</h4>
+      <div class="workflow-steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-desc">Проверить статус изменений</div>
+            <code class="step-cmd">git status</code>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-desc">Добавить файлы в индекс</div>
+            <code class="step-cmd">git add .</code>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-desc">Создать коммит с сообщением</div>
+            <code class="step-cmd">git commit -m "Описание изменений"</code>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-desc">Отправить на сервер</div>
+            <code class="step-cmd">git push origin main</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="workflow-example">
+      <h4>2. Работа с feature-веткой</h4>
+      <div class="workflow-steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-desc">Создать и переключиться на новую ветку</div>
+            <code class="step-cmd">git checkout -b feature/new-feature</code>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-desc">Внести изменения и закоммитить</div>
+            <code class="step-cmd">git add . && git commit -m "Add new feature"</code>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-desc">Отправить ветку на сервер</div>
+            <code class="step-cmd">git push -u origin feature/new-feature</code>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-desc">Создать Pull Request на GitHub</div>
+            <code class="step-cmd">gh pr create --title "New feature" --body "Description"</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="workflow-example">
+      <h4>3. Получение изменений от команды</h4>
+      <div class="workflow-steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-desc">Получить и слить изменения</div>
+            <code class="step-cmd">git pull origin main</code>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-desc">Или получить без слияния (для проверки)</div>
+            <code class="step-cmd">git fetch origin</code>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-desc">Посмотреть что изменилось</div>
+            <code class="step-cmd">git diff main origin/main</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="workflow-example">
+      <h4>4. Отмена изменений</h4>
+      <div class="workflow-steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-desc">Отменить изменения в файле (до git add)</div>
+            <code class="step-cmd">git checkout -- filename.rb</code>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-desc">Убрать файл из индекса (после git add)</div>
+            <code class="step-cmd">git reset HEAD filename.rb</code>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-desc">Отменить последний коммит (сохранить изменения)</div>
+            <code class="step-cmd">git reset --soft HEAD~1</code>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-desc">Отменить коммит полностью (создать revert-коммит)</div>
+            <code class="step-cmd">git revert HEAD</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>Git Workflow Cheatsheet | Created by <a href="https://github.com/Ruslanux" style="color: #f97316; text-decoration: none;">github.com/Ruslanux</a></p>
+    </footer>
+  </div>
+</body>
+</html>
