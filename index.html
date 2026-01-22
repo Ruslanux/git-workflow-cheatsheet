@@ -703,6 +703,71 @@
       </div>
     </div>
 
+    <!-- Real World Example -->
+    <h2 class="section-title">Реальный пример: деплой этой страницы</h2>
+
+    <div class="workflow-example" style="border: 2px solid #f97316;">
+      <h4 style="color: #f97316;">🚀 Как этот cheatsheet был опубликован на GitHub Pages</h4>
+      <div class="workflow-steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-desc">Создать директорию проекта</div>
+            <code class="step-cmd">mkdir git-workflow-cheatsheet && cd git-workflow-cheatsheet</code>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-desc">Создать index.html (для GitHub Pages главный файл должен называться index.html)</div>
+            <code class="step-cmd">touch index.html  # затем добавить HTML-контент</code>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-desc">Инициализировать Git репозиторий</div>
+            <code class="step-cmd">git init</code>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-desc">Добавить файл в индекс и создать коммит</div>
+            <code class="step-cmd">git add index.html && git commit -m "Initial commit: Git Workflow Cheatsheet"</code>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-desc">Переименовать ветку в main (GitHub Pages по умолчанию использует main)</div>
+            <code class="step-cmd">git branch -m main</code>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">6</div>
+          <div class="step-content">
+            <div class="step-desc">Создать публичный репозиторий на GitHub и запушить (используя GitHub CLI)</div>
+            <code class="step-cmd">gh repo create git-workflow-cheatsheet --public --source=. --push</code>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">7</div>
+          <div class="step-content">
+            <div class="step-desc">Включить GitHub Pages через API</div>
+            <code class="step-cmd">gh api repos/USERNAME/git-workflow-cheatsheet/pages -X POST \
+  --input - <<< '{"source":{"branch":"main","path":"/"}}'</code>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 20px; padding: 15px; background: #1a1a2e; border-radius: 8px; border-left: 3px solid #22c55e;">
+        <strong style="color: #22c55e;">✓ Результат:</strong>
+        <p style="color: #ccc; margin-top: 5px;">
+          Сайт доступен по адресу: <a href="https://ruslanux.github.io/git-workflow-cheatsheet/" style="color: #3b82f6;">https://ruslanux.github.io/git-workflow-cheatsheet/</a>
+        </p>
+      </div>
+    </div>
+
     <footer>
       <p>Git Workflow Cheatsheet | Created by <a href="https://github.com/Ruslanux" style="color: #f97316; text-decoration: none;">github.com/Ruslanux</a></p>
     </footer>
